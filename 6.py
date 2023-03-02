@@ -18,8 +18,6 @@ ax.view_init(elev=10, azim=50)
 plt.show()
 
 
-
-
 def newtone():
 
 	def f(x = 0, y = 0):
