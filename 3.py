@@ -8,7 +8,7 @@ plt.style.use(['science', 'notebook', 'grid', 'Solarize_Light2'])
 
 
 A1 = 10
-A2 = 2.6
+A2 = 1.6
 w1 = 1.3
 w2 = 23.6
 N = 500
@@ -25,16 +25,16 @@ def f(x_):
 
 def fourier(i):
 	def a_n(n):
-		ans = f(x) * np.cos(x * math.pi * n)/N * 2
+		ans = f(x) * np.cos(x * math.pi * n)/N
 		return ans.sum()
 
 	def b_n(n):
-		ans = f(x) * np.sin(x * math.pi * n)/N * 2
+		ans = f(x) * np.sin(x * math.pi * n)/N
 		return ans.sum()
 
 	S_N = np.array([a_n(n) * np.cos(math.pi * n * x) + b_n(n) * np.sin(math.pi * n * x) for n in range(1,i)])
 
-	return sum(S_N) + a_n(0)/2
+	return sum(S_N)# + a_n(0)/2
 
 ff = fourier(500)
 
@@ -46,22 +46,22 @@ t = np.linspace(0, math.pi, 500)
 x = np.cos(t)
 
 def chebishev(N):
-	a_n0 = (f(x) / N).sum()
+	a_n0 = (f(x) / N ).sum()
 
 	def a_nn(n):
-		ans = f(x) * np.cos(n * t) / N * 2
+		ans = f(x) * np.cos(n * t) / N *2
 		return ans.sum()
 
 	S_N = np.array([a_nn(n) * np.cos(n * t) for n in range(1, N)])
 
 	return sum(S_N) + a_n0
 
-fft = chebishev(200)
+fft = chebishev(500)
 
 
 
-
-ax[1].plot(x,ff-f(x), color = 'orange')
-# ax[1].plot(x,f(x), color = 'brown')
+#
+ax[1].plot(x,fft, color = 'orange')
+ax[1].plot(x,f(x), color = 'brown')
 
 plt.show()
