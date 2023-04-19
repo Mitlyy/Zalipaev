@@ -7,9 +7,10 @@ import scienceplots
 plt.style.use(['science', 'notebook', 'grid', 'Solarize_Light2'])
 
 
-_ = np.linspace(-2, 2, 100)
+_ = np.linspace(-4, 4, 100)
 x, y = np.meshgrid(_,_)
 z = 5 * x**2 + 1/4 * x*y + 2 * y**2 - 4 * x - 5 * y + 5
+
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 ax.plot_surface(x,y,z, cmap='coolwarm',

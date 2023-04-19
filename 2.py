@@ -91,3 +91,5 @@ def sor(A, f, psi = 1e-2, x = np.array([0.1, 0.1, 0.1]), w = 0.99):
 print(jacobi(mat, f = vect))
 print(seidel(mat, f = vect))
 print(sor(mat, f = vect, w = 1.018))
+
+

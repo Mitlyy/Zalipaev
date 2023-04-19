@@ -3,29 +3,17 @@ from matplotlib import pyplot as plt
 import math
 import scienceplots
 from scipy.fftpack import *
-
+from numpy import loadtxt
 plt.style.use(['science', 'notebook', 'grid', 'Solarize_Light2'])
 
-omega = np.linspace(5e+12, 8e+12, 100)
-THz = 1e+12
-f0 = 1 * THz
-tau_p = 0.5/ THz
-z = 1e-3
-d = 0.5e-3
 
+data = loadtxt(r"C:\Users\User\Desktop\epsdata.txt", comments="#", delimiter=" ", unpack=True)
+E = data[1]
 
-def eps(w_):
-	w_pl = 1.5 * THz # THz
-	G = 0.5 * THz # THz
-	w1 = 2 * 3.14 * THz  # THz
-	eps_ = 1 + w_pl ** 2 * ((w1 ** 2 - w_ ** 2) / ((w1 ** 2 - w_ ** 2) ** 2 + w_ ** 2 * G ** 2) +
-	                        + 1j * (G * w_) / (((w1 ** 2 - w_ ** 2) ** 2) + w_ ** 2 * G ** 2))
-	plt.plot(omega, eps_.real)
-	plt.plot(omega, eps_.imag)
-	k0 = w_ / 3e+8
-	n = np.sqrt(eps_)
-	T = 4 * n / ((n+1)**2 * np.exp(-1j*k0*n*d)-(n-1)**2 * np.exp(1j*k0*n*d))
-	return n, T, k0
+def T(w_):
+    F = fft(E)
+	ans = 1/F * np.exp(1j * w(t - z/c)) * E
+    return ans
 
 
 # plt.plot(omega, eps(omega).real)
