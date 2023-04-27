@@ -54,7 +54,7 @@ def chebishev(N):
 
 	return sum(S_N) + a_n0
 
-fft = chebishev(200)
+fft = chebishev(64)
 
 
 
@@ -63,6 +63,6 @@ fft = fft[2:fft.shape[0]-2]
 # ax[1].plot(x,fft,"o", color = 'orange')
 # ax[1].plot(x,f(x), color = 'brown')
 
-ax[1].plot(x,abs(fft-f(x)), color = 'orange')
-
+ax[1].plot(x,fft,"o", color = 'orange')
+ax[1].plot(x,f(x), color = 'orange')
 plt.show()
