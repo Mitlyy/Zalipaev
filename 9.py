@@ -8,24 +8,30 @@ from scipy.fftpack import *
 
 plt.style.use(['science', 'notebook', 'grid', 'Solarize_Light2'])
 
-omega = np.linspace(5e+12, 8e+12, 100)
+omega = np.linspace(0, 9e+12, 1024)
 THz = 1e+12
 f0 = 1 * THz
 tau_p = 0.5/ THz
+omega_0 = 2 * np.pi * f0
 z = 1e-3
 d = 0.5e-3
 data = loadtxt(r"C:\Users\User\Desktop\epsdata.txt", comments="#", delimiter=" ", unpack=True)
 E = data[1]
 t = data[0]
-c = 3e+8
 
-F = fft(E)
+c = 3e+8
+def F(w_):
+    return 2 * np.sqrt(np.pi) * tau_p * np.exp(-(w_-omega_0)**2 * tau_p**2)
+# plt.plot(omega, F(omega))
+# plt.show()
+F = F(omega)
+
 def T(w_):
     dt = t[1]-t[0]
     a = []
     for i in range(t.shape[0]):
         a.append(1/F[i] * sum(np.exp(1j * w_[i] * (t - z / c)) * E) * dt)
-    ans = np.asarray(a)
+    ans = np.asarray(a)/max(a)
     return ans
 
 
@@ -43,22 +49,34 @@ def eps(w_):
 	return n, T, k0
 
 
-n, T, k0 = eps(omega)
+n, T_, k0 = eps(omega)
+# T = T(omega)
+# plt.plot(omega, F)
+plt.plot(omega, T_)
+plt.show()
 def newton():
+	k0 = omega / 3e+8
 	def f(n_):
-		g = 4 * n_ / ((n_+1)**2 * np.exp(-1j*k0*n_*d)-(n_-1)**2 * np.exp(1j*k0*n_*d)) - T
+		g = 4 * n_ / ((n_+1)**2 * np.exp(-1j*k0*n_*d)-(n_-1)**2 * np.exp(1j*k0*n_*d)) - T_
 		return g
 	def df(n_, h = 0.001):
 		dg = (f(n_ + h) - f(n_)) / h
 		return dg
-	def iter(func, i = 0, xn = 1):
+	def iter(i = 0, xn = 1):
 		xn_ = xn - f(xn) / df(xn)
-		print(xn_[0])
+		# print(xn_[0])
 		if i == 4:
 			return xn_
+		else:
+			i += 1
+			ans = iter(i, xn = xn_)
+			return ans
+		return xn_
+	ans = iter(0, xn = 1)
+	return ans
 
 n = newton()
-plt.plot(omega, (n**2).imag, "*--")
-plt.plot(omega, (n**2).real, "*--")
-plt.show()
+print(n.shape)
+plt.plot(omega, abs(n.imag), "*--")
+plt.plot(omega, abs(n.real), "*--")
 plt.show()
