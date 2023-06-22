@@ -1,75 +1,125 @@
 import numpy as np
-from matplotlib import pyplot as plt
-import math
-from matplotlib.animation import ArtistAnimation
+import matplotlib.pyplot as plt
 import scienceplots
 from numpy import loadtxt
+from math import *
 from scipy.fftpack import *
+import scipy.integrate as integrate
+import scipy.special as special
 
-plt.style.use(['science', 'notebook', 'grid', 'Solarize_Light2'])
+plt.style.use(['science', 'notebook', 'grid'])
 
-
-THz = 1e+12
-f0 = 1 * THz
-tau_p = 0.5/ THz
-z = 1e-3
-d = 0.5e-3
+fig, ax = plt.subplots(2, 2, figsize=(8,8))
 data = loadtxt(r"C:\Users\User\Desktop\epsdata.txt", comments="#", delimiter=" ", unpack=True)
-omega = np.linspace(5e+12, 8e+12, data[1].shape[0])
-E = data[1]
+E_tr = data[1]
 t = data[0]
-c = 3e+8
-F = fft(E)
 
-def T_(w_):
+
+eps = 1e-7
+eps1 = 1e-9
+dc = 10 / 3
+f0 = 1.0
+taup = 0.5
+delf = 0.6
+fmin = f0 - delf
+fmax = f0 + delf
+z = 1.0
+ompl = 1.0
+gam = 0.5
+tz = t - (z/3)*10
+omega = np.linspace(fmin, fmax, 1024)
+
+E_in = 2 * np.cos(2 * np.pi * f0 * tz-4) * np.exp(-(tz-4)**2 / 4 / taup**2)
+
+ax[0, 0].plot(t, E_in)
+
+F = fftshift(fft(E_in))
+# ax[1, 0].plot(omega, abs(F))
+ax[0, 1].plot(t, E_tr)
+
+
+
+def T(w_):
     dt = t[1]-t[0]
     a = []
     for i in range(t.shape[0]):
-        a.append(1/F[i] * sum(np.exp(1j * w_[i] * (t - z / c)) * E) * dt)
-    a = np.asarray(a)
-    # plt.plot(omega, a.real)
-    # plt.plot(omega, a.imag)
+        a.append(sum(np.exp(2*np.pi*1j*w_[i]*(t-z/3*10)) * E_tr * dt))
     ans = np.asarray(a)
     return ans
 
-# def eps(w_):
-# 	w_pl = 1.5 * THz # THz
-# 	G = 0.5 * THz # THz
-# 	w1 = 2 * 3.14 * THz  # THz
-# 	eps_ = 1 + w_pl ** 2 * ((w1 ** 2 - w_ ** 2) / ((w1 ** 2 - w_ ** 2) ** 2 + w_ ** 2 * G ** 2) +
-# 	                        + 1j * (G * w_) / (((w1 ** 2 - w_ ** 2) ** 2) + w_ ** 2 * G ** 2))
-#
-# 	k0 = w_ / 3e+8
-# 	n = np.sqrt(eps_)
-# 	T = 4 * n / ((n+1)**2 * np.exp(-1j*k0*n*d)-(n-1)**2 * np.exp(1j*k0*n*d))
-# 	# plt.plot(omega, T.real)
-# 	# plt.plot(omega, T.imag)
-# 	return n, T, k0
-#
-#
-# plt.show()
-# n, T, k0 = eps(omega)
+T_ = T(omega)
+ax[1, 0].plot(omega, T_.real)
+ax[1, 0].plot(omega, T_.imag)
+
+
+
+
+eps = 1e-7
+eps1 = 1e-9
+dc = 10 / 3
+f0 = 1.0
+taup = 0.5
+delf = 0.6
+fmin = f0 - delf
+fmax = f0 + delf
+z = 1.0
+ompl = 1.0
+gam = 0.5
+maxt = 300
+th = 1 / 20
+tin = -1.
+maxf=512
+New=20
+fh=2*delf/maxf
+n=1
+fa1=[]
+maxt=1024
+maxtd2=maxt//2
+Tfm = np.zeros(1024) * 1j
+epsm = np.zeros(1024) * 1j
+for mf in range(1, maxf+2):
+    f=fmin+(mf-1)*fh
+    fa1.append(f)
+    sum4=0
+    sum2=0
+    t=tin+th
+    for m in range(1, maxtd2):
+        m4=m*2-1
+        sum4=sum4+E_tr[m4-1]*np.exp(2*np.pi*1j*f*(t-z/3*10))
+        t=t+th
+        m2=m*2
+        sum2=sum2+E_tr[m2-1]*np.exp(2*np.pi*1j*f*(t-z/3*10))
+        t=t+th
+    Tf= (4*sum4+2*sum2) * th/3 * exp((2*pi*taup)**2*(f-f0)**2)/(2*sqrt(pi)*taup)
+    Tfm[mf-1] = Tf
+
+# ax[1, 1].plot(omega, Tfm.imag)
+# ax[1, 1].plot(omega, Tfm.real)
 def newton():
 	def f(n_):
-		g = 4 * n_ / ((n_+1)**2 * np.exp(-1j*k0*n_*d)-(n_-1)**2 * np.exp(1j*k0*n_*d)) - T
+		g = 4 * n_ / ((n_+1)**2 * np.exp(-1j*n_* 2 * pi * omega * dc)-(n_-1)**2 * np.exp(1j*n_* 2 * pi * omega * dc)) - T_
 		return g
 	def df(n_, h = 0.001):
 		dg = (f(n_ + h) - f(n_)) / h
 		return dg
-
-	def iter(func, i = 0, xn = 1):
+	def iter(i = 0, xn = 1):
 		xn_ = xn - f(xn) / df(xn)
-		if i == 5:
+		# print(xn_[0])
+		if i == 3:
 			return xn_
 		else:
 			i += 1
-			ans = iter(func, i, xn = xn_)
+			ans = iter(i, xn = xn_)
 			return ans
 		return xn_
-	ans = iter(func = f(n), xn = 1)
+	ans = iter(0, xn = 1)
 	return ans
-n = newton()
 
-# plt.plot(omega, (n**2).imag, "*--")
-# plt.plot(omega, (n**2).real, "*--")
+n = newton()**2
+print(n)
+ax[1,1].plot(omega[300:], abs(n.imag)[300:], "--")
+ax[1,1].plot(omega[300:], abs(n.real)[300:], "--")
+
+
 plt.show()
+
